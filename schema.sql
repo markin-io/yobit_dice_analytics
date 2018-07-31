@@ -6,7 +6,7 @@ CREATE TABLE games (
     imgid integer, -- ???
     cur varchar(3), -- currency
     bet double precision, -- bet amount
-    tar boolean, -- target: <48 (true) or >52 (false)
+    tar boolean, -- target: <48 (false) or >52 (true)
     roll real, -- generator output
     pr double precision -- game result (lost/won amount)
 )
