@@ -1,0 +1,17 @@
+{
+  "name": "yobit-dice-analytics",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node boostrap.js"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0"
+  },
+  "dependencies": {
+    "dotenv": "^6.0.0"
+  }
+}
