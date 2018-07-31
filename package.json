@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "dotenv": "^6.0.0",
+    "moment": "^2.22.2",
     "pg": "^7.4.3",
     "websocket": "^1.0.26"
   }

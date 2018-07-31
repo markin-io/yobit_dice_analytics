@@ -1,9 +1,15 @@
 import dotenv from 'dotenv';
+import moment from 'moment';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 const { Client } = require('pg');
 
 dotenv.load();
+
+const DATABASE_WRITE_INTERVAL = 5 * 1000;
+const RUNNING_TIME = 60 * 60 * 1000;
+
+let startTime;
 
 const run = async () => {
   try {
@@ -11,6 +17,7 @@ const run = async () => {
     const wsClient = initializeWebSocketClient();
     const gamesDataPool = [];
     let recordsWritten = 0;
+    startTime = new Date();
 
     wsClient.onopen = () => {
       console.log('WebSocket Client Connected');
@@ -33,16 +40,17 @@ const run = async () => {
 
     const writeInterval = setInterval(async () => {
       const toWrite = gamesDataPool.splice(0, gamesDataPool.length);
-      console.log(`Writing ${toWrite.length} records`);
+      const workingTime = new Date() - startTime;
+      console.log(`Writing ${toWrite.length} records. Working time is: ${moment.utc(workingTime).format('HH:mm:ss')}`);
       await writeGamesResult(dbClient, toWrite);
       recordsWritten += toWrite.length;
-    }, 1000);
+    }, DATABASE_WRITE_INTERVAL);
 
     setTimeout(() => {
       console.log(`Written ${recordsWritten} records.`);
       clearInterval(writeInterval);
       wsClient.close();
-    }, 10000);
+    }, RUNNING_TIME);
 
   } catch (error) {
     console.error(error);
