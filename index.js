@@ -35,21 +35,33 @@ const run = async () => {
 
     wsClient.onclose = async () => {
       console.log('WebSocket Client Closed');
-      await postgresDisconnect(dbClient);
+      stop();
     };
 
     const writeInterval = setInterval(async () => {
-      const toWrite = gamesDataPool.splice(0, gamesDataPool.length);
-      const workingTime = new Date() - startTime;
-      console.log(`Writing ${toWrite.length} records. Working time is: ${moment.utc(workingTime).format('HH:mm:ss')}`);
-      await writeGamesResult(dbClient, toWrite);
-      recordsWritten += toWrite.length;
+      try {
+        const toWrite = gamesDataPool.splice(0, gamesDataPool.length);
+        const workingTime = new Date() - startTime;
+        if (toWrite.length) {
+          console.log(`Writing ${toWrite.length} records. Working time is: ${moment.utc(workingTime).format('HH:mm:ss')}`);
+          await writeGamesResult(dbClient, toWrite);
+          recordsWritten += toWrite.length;
+        }
+      } catch(error) {
+        console.error(error)
+      }
+
     }, DATABASE_WRITE_INTERVAL);
 
-    setTimeout(() => {
-      console.log(`Written ${recordsWritten} records.`);
+    const stop = async () => {
       clearInterval(writeInterval);
+      await postgresDisconnect(dbClient)
+    };
+
+    setTimeout(async () => {
+      console.log(`Written ${recordsWritten} records.`);
       wsClient.close();
+      await stop();
     }, RUNNING_TIME);
 
   } catch (error) {
@@ -95,7 +107,6 @@ const postgresDisconnect = async (client) => {
 
 const formatGameResult = (data) => {
   const { win, did, time, nick, imgid, cur, bet, tar, roll, pr } = data;
-
   const formattedData = {
     win: !!win,
     did,

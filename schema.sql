@@ -8,5 +8,5 @@ CREATE TABLE games (
     bet double precision, -- bet amount
     tar boolean, -- target: <48 (false) or >52 (true)
     roll real, -- generator output
-    pr double precision -- game result (lost/won amount)
+    pr double precision -- profit (lost/won amount)
 )
