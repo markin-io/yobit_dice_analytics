@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import moment from 'moment';
+import logger from './lib/logger';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 const { Client } = require('pg');
@@ -20,7 +21,7 @@ const run = async () => {
     startTime = new Date();
 
     wsClient.onopen = () => {
-      console.log('WebSocket Client Connected');
+      logger.info('WebSocket Client Connected');
       wsClient.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: "dice_BTC" } }));
     };
 
@@ -34,7 +35,7 @@ const run = async () => {
     };
 
     wsClient.onclose = async () => {
-      console.log('WebSocket Client Closed');
+      logger.info('WebSocket Client Closed');
       stop();
     };
 
@@ -43,12 +44,12 @@ const run = async () => {
         const toWrite = gamesDataPool.splice(0, gamesDataPool.length);
         const workingTime = new Date() - startTime;
         if (toWrite.length) {
-          console.log(`Writing ${toWrite.length} records. Working time is: ${moment.utc(workingTime).format('HH:mm:ss')}`);
+          logger.info(`[${moment().format('DD-MM-YYYY HH:mm:ss')}] Writing ${toWrite.length} records. Working time is: ${moment.utc(workingTime).format('HH:mm:ss')}`);
           await writeGamesResult(dbClient, toWrite);
           recordsWritten += toWrite.length;
         }
       } catch(error) {
-        console.error(error)
+        logger.error(error)
       }
 
     }, DATABASE_WRITE_INTERVAL);
@@ -59,13 +60,13 @@ const run = async () => {
     };
 
     setTimeout(async () => {
-      console.log(`Written ${recordsWritten} records.`);
+      logger.info(`Written ${recordsWritten} records.`);
       wsClient.close();
       await stop();
     }, RUNNING_TIME);
 
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     process.exit(0);
   }
 
@@ -86,7 +87,7 @@ const initializeWebSocketClient = () => {
   const client = new W3CWebSocket(process.env.WS_SERVER, 'echo-protocol');
 
   client.onerror = function() {
-    console.log('Connection Error');
+    logger.info('Connection Error');
   };
 
   return client;
@@ -95,12 +96,12 @@ const initializeWebSocketClient = () => {
 const postgresConnect = async () => {
   const client = new Client();
   await client.connect();
-  console.log('Database connected');
+  logger.info('Database connected');
   return client;
 };
 
 const postgresDisconnect = async (client) => {
-  console.log('Database connection closed');
+  logger.info('Database connection closed');
   await client.end();
 };
 
